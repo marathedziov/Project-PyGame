@@ -8,6 +8,9 @@ FPS = 50
 pygame.init()
 size = width, height = 500, 500
 screen = pygame.display.set_mode(size)
+list_artifacts = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4,
+                  4, 4, 10, 10, 10, 10]
+random.shuffle(list_artifacts)
 
 
 def terminate():
@@ -134,9 +137,10 @@ def show_level():
 
 class Tile(pygame.sprite.Sprite):
     tile_images = {
-        'wall': load_image('box.png'),
-        'bag': load_image('mar.png'),
-        'empty': load_image('grass.png')
+        'wall': load_image('2.jpg'),
+        'bag': load_image('bag.jpg'),
+        'exit': load_image('exit.jpg'),
+        'empty': load_image('floor.jpg')
     }
     tile_width = tile_height = 50
 
@@ -184,6 +188,7 @@ class Player(pygame.sprite.Sprite):
         self.direction = None
         self.x = pos_x
         self.y = pos_y
+        self.collected_artifacts1 = []
 
     def move(self, dest, tiles_group):
         dx, dy = dest
@@ -194,6 +199,12 @@ class Player(pygame.sprite.Sprite):
             if tile_type == 'wall':
                 self.rect.x -= dx * Player.tile_width
                 self.rect.y -= dy * Player.tile_height
+            elif tile_type == 'bag':
+                artifact_value = random.choice(list_artifacts)
+                self.collected_artifacts1.append(artifact_value)
+                list_artifacts.remove(artifact_value)
+                print(
+                    f"Player 1 found artifact worth {artifact_value} money. Total money: {sum(self.collected_artifacts1)}")
 
 
 class Player2(pygame.sprite.Sprite):
@@ -208,6 +219,7 @@ class Player2(pygame.sprite.Sprite):
         self.direction = None
         self.x = pos_x
         self.y = pos_y
+        self.collected_artifacts2 = []
 
     def move(self, dest, tiles_group):
         dx, dy = dest
@@ -218,6 +230,12 @@ class Player2(pygame.sprite.Sprite):
             if tile_type == 'wall':
                 self.rect.x -= dx * Player2.tile_width
                 self.rect.y -= dy * Player2.tile_height
+            elif tile_type == 'bag':
+                artifact_value = random.choice(list_artifacts)
+                self.collected_artifacts2.append(artifact_value)
+                list_artifacts.remove(artifact_value)
+                print(
+                    f"Player 2 found artifact worth {artifact_value} money. Total money: {sum(self.collected_artifacts2)}")
 
 
 class Player3(pygame.sprite.Sprite):
@@ -232,6 +250,7 @@ class Player3(pygame.sprite.Sprite):
         self.direction = None
         self.x = pos_x
         self.y = pos_y
+        self.collected_artifacts3 = []
 
     def move(self, dest, tiles_group):
         dx, dy = dest
@@ -242,6 +261,12 @@ class Player3(pygame.sprite.Sprite):
             if tile_type == 'wall':
                 self.rect.x -= dx * Player3.tile_width
                 self.rect.y -= dy * Player3.tile_height
+            elif tile_type == 'bag':
+                artifact_value = random.choice(list_artifacts)
+                self.collected_artifacts3.append(artifact_value)
+                list_artifacts.remove(artifact_value)
+                print(
+                    f"Player 3 found artifact worth {artifact_value} money. Total money: {sum(self.collected_artifacts3)}")
 
 
 class Player4(pygame.sprite.Sprite):
@@ -256,16 +281,23 @@ class Player4(pygame.sprite.Sprite):
         self.direction = None
         self.x = pos_x
         self.y = pos_y
+        self.collected_artifacts4 = []
 
     def move(self, dest, tiles_group):
         dx, dy = dest
-        self.rect.x += dx * Player4.tile_width
-        self.rect.y += dy * Player4.tile_height
+        self.rect.x += dx * Player3.tile_width
+        self.rect.y += dy * Player3.tile_height
         for i in pygame.sprite.spritecollide(self, tiles_group, False):
             tile_type = getattr(i, 'tile_type', None)
             if tile_type == 'wall':
-                self.rect.x -= dx * Player4.tile_width
-                self.rect.y -= dy * Player4.tile_height
+                self.rect.x -= dx * Player3.tile_width
+                self.rect.y -= dy * Player3.tile_height
+            elif tile_type == 'bag':
+                artifact_value = random.choice(list_artifacts)
+                self.collected_artifacts4.append(artifact_value)
+                list_artifacts.remove(artifact_value)
+                print(
+                    f"Player 3 found artifact worth {artifact_value} money. Total money: {sum(self.collected_artifacts4)}")
 
 
 def generate_level(level, keeper_group, tiles_group, all_sprites, player_group, player3_group, player4_group):
@@ -278,6 +310,8 @@ def generate_level(level, keeper_group, tiles_group, all_sprites, player_group, 
                 Tile('wall', x, y, tiles_group, all_sprites)
             elif level[y][x] == '@':
                 Tile('bag', x, y, tiles_group, all_sprites)
+            elif level[y][x] == 'z':
+                Tile('exit', x, y, tiles_group, all_sprites)
             elif level[y][x] == '0':
                 Tile('empty', x, y, tiles_group, all_sprites)
                 new_keeper = Keeper(x, y, keeper_group, all_sprites)
