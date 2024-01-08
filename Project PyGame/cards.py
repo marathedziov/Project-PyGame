@@ -7,9 +7,9 @@ pygame.init()
 screen = pygame.display.set_mode((500, 500))
 pygame.display.set_caption("Number Game")
 
-card_deck = [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5]
-random.shuffle(card_deck)
-print("1:", card_deck)
+card_deck1 = [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5]
+random.shuffle(card_deck1)
+print("1:", card_deck1)
 
 button_width = 120
 button_height = 200
@@ -24,8 +24,8 @@ while True:
             sys.exit()
 
         if event.type == pygame.KEYDOWN:
-            if len(card_deck) >= 3:
-                last_three_numbers = card_deck[-3:]
+            if len(card_deck1) >= 3:
+                last_three_numbers = card_deck1[-3:]
 
                 for i in range(3):
                     button_x = button_x_start + (button_width + distance_between_buttons) * i
@@ -36,23 +36,23 @@ while True:
                     screen.blit(text, text_rect)
 
                 if event.key == pygame.K_1:
-                    selected_number = card_deck[-3]
+                    selected_number = card_deck1[-3]
                     print(selected_number)
-                    card_deck.pop(-3)
-                    card_deck = card_deck[-2:] + card_deck[:-2]
-                    print(card_deck)
+                    card_deck1.pop(-3)
+                    card_deck1 = card_deck1[-2:] + card_deck1[:-2]
+                    print(card_deck1)
                 elif event.key == pygame.K_2:
-                    selected_number = card_deck[-2]
+                    selected_number = card_deck1[-2]
                     print(selected_number)
-                    card_deck.pop(-2)
-                    card_deck = card_deck[-2:] + card_deck[:-2]
-                    print(card_deck)
+                    card_deck1.pop(-2)
+                    card_deck1 = card_deck1[-2:] + card_deck1[:-2]
+                    print(card_deck1)
                 elif event.key == pygame.K_3:
-                    selected_number = card_deck[-1]
+                    selected_number = card_deck1[-1]
                     print(selected_number)
-                    card_deck.pop(-1)
-                    card_deck = card_deck[-2:] + card_deck[:-2]
-                    print(card_deck)
+                    card_deck1.pop(-1)
+                    card_deck1 = card_deck1[-2:] + card_deck1[:-2]
+                    print(card_deck1)
             else:
                 print("Карты закончились")
     pygame.display.flip()

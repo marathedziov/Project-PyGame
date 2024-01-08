@@ -28,15 +28,30 @@ def load_image(name):
 
 
 def start_screen():
-    intro_text = ["ЗАСТАВКА", "",
-                  "Правила игры",
-                  "Если в правилах несколько строк,",
-                  "приходится выводить их построчно"]
+    intro_text = ["", "        Хранитель. Сокровища Богов Египта.",
+                  "",
+                  "",
+                  "",
+                  "",
+                  "",
+                  "",
+                  "",
+                  "",
+                  "",
+                  "                              Тясачи лет он охранял",
+                  "                              несметные богатства древней",
+                  "                              пирамиды, но люди дерзнули",
+                  "                              нарушить его покой..."]
 
-    fon = pygame.transform.scale(load_image('fon.jpg'), (width, height))
+    fon = pygame.transform.scale(load_image('fon2.jpg'), (width, height))
     screen.blit(fon, (0, 0))
     font = pygame.font.Font(None, 30)
     text_coord = 50
+
+    # Define button colors
+    button_color = (0, 0, 0)
+    hover_color = (50, 50, 50)
+
     for line in intro_text:
         string_rendered = font.render(line, 1, pygame.Color('black'))
         intro_rect = string_rendered.get_rect()
@@ -45,18 +60,28 @@ def start_screen():
         intro_rect.x = 10
         text_coord += intro_rect.height
         screen.blit(string_rendered, intro_rect)
-    clock = pygame.time.Clock()
+
+    button_rect = pygame.Rect(150, 200, 200, 60)
+    button_text = font.render("Начать играть", True, 'white')
     running = True
+
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                terminate()
-            elif event.type == pygame.KEYDOWN or \
-                    event.type == pygame.MOUSEBUTTONDOWN:
                 running = False
-                break
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if button_rect.collidepoint(pygame.mouse.get_pos()):
+                    running = False
+                    break
+
+        # Check if the cursor is over the button
+        if button_rect.collidepoint(pygame.mouse.get_pos()):
+            pygame.draw.rect(screen, hover_color, button_rect)
+        else:
+            pygame.draw.rect(screen, button_color, button_rect)
+
+        screen.blit(button_text, (button_rect.x + 10, button_rect.y + 10))  # Adjust text position
         pygame.display.flip()
-        clock.tick(FPS)
 
 
 def show_level():
@@ -93,12 +118,13 @@ def show_level():
     tiles_group = pygame.sprite.Group()
     keeper_group = pygame.sprite.Group()
     player_group = pygame.sprite.Group()
+    player2_group = pygame.sprite.Group()
     player3_group = pygame.sprite.Group()
     player4_group = pygame.sprite.Group()
 
     level = load_level('level1.txt')
     keeper, keeper_x, keeper_y, player1, player_x, player_y, player2, player3, player4 = generate_level(
-        level, keeper_group, tiles_group, all_sprites, player_group, player3_group, player4_group)
+        level, keeper_group, tiles_group, all_sprites, player_group, player2_group, player3_group, player4_group)
 
     clock = pygame.time.Clock()
     while True:
@@ -107,6 +133,8 @@ def show_level():
                 terminate()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE and keeper is not None:
+                    start_selection_card_window()
+
                     my_list = [1, 1, 2, 2, 3, 3, 4]
                     random.shuffle(my_list)
                     step_multiplier = my_list[0]
@@ -129,15 +157,20 @@ def show_level():
         all_sprites.draw(screen)
         keeper_group.draw(screen)
         player_group.draw(screen)
+        player2_group.draw(screen)
         player3_group.draw(screen)
         player4_group.draw(screen)
         pygame.display.flip()
         clock.tick(FPS)
 
 
+def start_selection_card_window():
+    pass
+
+
 class Tile(pygame.sprite.Sprite):
     tile_images = {
-        'wall': load_image('2.jpg'),
+        'wall': load_image('wall.jpg'),
         'bag': load_image('bag.jpg'),
         'exit': load_image('exit.jpg'),
         'empty': load_image('floor.jpg')
@@ -204,7 +237,7 @@ class Player(pygame.sprite.Sprite):
                 self.collected_artifacts1.append(artifact_value)
                 list_artifacts.remove(artifact_value)
                 print(
-                    f"Player 1 found artifact worth {artifact_value} money. Total money: {sum(self.collected_artifacts1)}")
+                    f'1 Игрок: "{artifact_value}" list: {self.collected_artifacts1}')
 
 
 class Player2(pygame.sprite.Sprite):
@@ -235,7 +268,7 @@ class Player2(pygame.sprite.Sprite):
                 self.collected_artifacts2.append(artifact_value)
                 list_artifacts.remove(artifact_value)
                 print(
-                    f"Player 2 found artifact worth {artifact_value} money. Total money: {sum(self.collected_artifacts2)}")
+                    f'2 Игрок: "{artifact_value}" list: {self.collected_artifacts2}')
 
 
 class Player3(pygame.sprite.Sprite):
@@ -266,7 +299,7 @@ class Player3(pygame.sprite.Sprite):
                 self.collected_artifacts3.append(artifact_value)
                 list_artifacts.remove(artifact_value)
                 print(
-                    f"Player 3 found artifact worth {artifact_value} money. Total money: {sum(self.collected_artifacts3)}")
+                    f'3 Игрок: "{artifact_value}" list: {self.collected_artifacts3}')
 
 
 class Player4(pygame.sprite.Sprite):
@@ -297,10 +330,11 @@ class Player4(pygame.sprite.Sprite):
                 self.collected_artifacts4.append(artifact_value)
                 list_artifacts.remove(artifact_value)
                 print(
-                    f"Player 3 found artifact worth {artifact_value} money. Total money: {sum(self.collected_artifacts4)}")
+                    f'4 Игрок: "{artifact_value}" list: {self.collected_artifacts4}')
 
 
-def generate_level(level, keeper_group, tiles_group, all_sprites, player_group, player3_group, player4_group):
+def generate_level(level, keeper_group, tiles_group, all_sprites, player_group, player2_group, player3_group,
+                   player4_group):
     new_keeper, keeper_x, keeper_y, new_player1, player_x, player_y, new_player2, new_player3, new_player4 = None, None, None, None, None, None, None, None, None
     for y in range(len(level)):
         for x in range(len(level[y])):
@@ -320,7 +354,7 @@ def generate_level(level, keeper_group, tiles_group, all_sprites, player_group, 
                 Tile('empty', x, y, tiles_group, all_sprites)
                 new_player1 = Player(x, y, player_group, all_sprites)
                 player_x, player_y = x, y
-                new_player2 = Player2(x, y, player_group, all_sprites)
+                new_player2 = Player2(x, y, player2_group, all_sprites)
                 new_player3 = Player3(x, y, player3_group, all_sprites)
                 new_player4 = Player4(x, y, player4_group, all_sprites)
 
