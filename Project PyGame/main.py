@@ -5,6 +5,7 @@ import pygame
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QHBoxLayout
 
+os.environ['SDL_VIDEO_WINDOW_POS'] = '710, 120'
 FPS = 50
 
 pygame.init()
@@ -78,6 +79,7 @@ def start_screen():
                 if button_rect.collidepoint(pygame.mouse.get_pos()):
                     running = False
                     qt_window.show()
+                    qt_window2.show()
                     break
 
         if button_rect.collidepoint(pygame.mouse.get_pos()):
@@ -371,11 +373,11 @@ class QtWindow(QWidget):
         self.card_deck3 = [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5]
         self.card_deck4 = [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5]
 
-        self.card_deck5_1 = [1, 2, 3, 4, 5]
-        self.card_deck5_2 = [1, 2, 3, 4, 5]
-        self.card_deck5_3 = [1, 2, 3, 4, 5]
-        self.card_deck5_4 = [1, 2, 3, 4, 5]
-        self.color_card = ["blue", "red", "yellow", "green"] * 5
+        self.card_deck5_1 = [1, 2, 3, 4]
+        self.card_deck5_2 = [1, 2, 3, 4]
+        self.card_deck5_3 = [1, 2, 3, 4]
+        self.card_deck5_4 = [1, 2, 3, 4]
+        self.color_card = ["blue", "red", "yellow", "green"] * 4
         random.shuffle(self.card_deck1)
         random.shuffle(self.card_deck2)
         random.shuffle(self.card_deck3)
@@ -392,10 +394,16 @@ class QtWindow(QWidget):
         self.carrent_player = [1, 2, 3, 4, 5]
         self.step = 0
 
+        self.selected_number1 = None
+        self.selected_number2 = None
+        self.selected_number3 = None
+        self.selected_number4 = None
+        self.selected_number5 = None
+
         self.initUI()
 
     def initUI(self):
-        self.setGeometry(710, 650, 500, 300)
+        self.setGeometry(710, 690, 500, 300)
         self.setFixedSize(500, 300)
         self.setWindowTitle("Хранитель. Сокровища Богов Египта")
         self.setWindowIcon(QIcon('data/icon.png'))
@@ -436,11 +444,6 @@ class QtWindow(QWidget):
         self.button3.setStyleSheet(
             f"QPushButton{{border-image: url({self.border_image_botton}); color: black;}}")
 
-        print(f"1: {self.card_deck1}")
-        print(f"2: {self.card_deck2}")
-        print(f"3: {self.card_deck3}")
-        print(f"4: {self.card_deck4}")
-
         spacing = 8
 
         vbox = QHBoxLayout()
@@ -452,41 +455,77 @@ class QtWindow(QWidget):
 
         self.setLayout(vbox)
 
+    def get_current_player_card_deck(self):
+        player_number = self.carrent_player[self.step % len(self.carrent_player)]
+        if player_number == 1:
+            return self.card_deck1, 1
+        elif player_number == 2:
+            return self.card_deck2, 2
+        elif player_number == 3:
+            return self.card_deck3, 3
+        elif player_number == 4:
+            return self.card_deck4, 4
+        elif player_number == 5:
+            color_card_deck_map = {"blue": self.card_deck5_1, "red": self.card_deck5_2,
+                                   "yellow": self.card_deck5_3, "green": self.card_deck5_4}
+            return color_card_deck_map[self.keeper_color_card], 5
+
     def button1_clicked(self):
-        self.handle_selection(self.card_deck1[-3], 3)
+        self.card_deck = self.get_current_player_card_deck()
+        self.handle_selection(self.card_deck[0][-3], 3)
 
     def button2_clicked(self):
-        self.handle_selection(self.card_deck1[-2], 2)
+        self.card_deck = self.get_current_player_card_deck()
+        if not (self.card_deck[1] == 5):
+            self.handle_selection(self.card_deck[0][-2], 2)
+        else:
+            self.handle_selection(self.card_deck[0][-1], 2)
 
     def button3_clicked(self):
-        self.handle_selection(self.card_deck1[-1], 1)
+        self.card_deck = self.get_current_player_card_deck()
+        self.handle_selection(self.card_deck[0][-1], 1)
 
     def handle_selection(self, selectednumber, num):
-        selected_number = selectednumber
+        self.selected_number = selectednumber
+
         self.num = -num
+
         if self.carrent_player[self.step % len(self.carrent_player)] == 1:
             self.card_deck1.pop(self.num)
             self.card_deck1 = self.card_deck1[-2:] + self.card_deck1[:-2]
+            self.selected_number1 = self.selected_number
         elif self.carrent_player[self.step % len(self.carrent_player)] == 2:
             self.card_deck2.pop(self.num)
             self.card_deck2 = self.card_deck2[-2:] + self.card_deck2[:-2]
+            self.selected_number2 = self.selected_number
         elif self.carrent_player[self.step % len(self.carrent_player)] == 3:
             self.card_deck3.pop(self.num)
             self.card_deck3 = self.card_deck3[-2:] + self.card_deck3[:-2]
+            self.selected_number3 = self.selected_number
         elif self.carrent_player[self.step % len(self.carrent_player)] == 4:
             self.card_deck4.pop(self.num)
             self.card_deck4 = self.card_deck4[-2:] + self.card_deck4[:-2]
+            self.selected_number4 = self.selected_number
+        elif self.carrent_player[self.step % len(self.carrent_player)] == 5:
+            self.selected_number5 = self.selected_number
+            if self.keeper_color_card == "blue":
+                self.card_deck5_1.pop(-1)
+            elif self.keeper_color_card == "red":
+                self.card_deck5_2.pop(-1)
+            elif self.keeper_color_card == "yellow":
+                self.card_deck5_3.pop(-1)
+            elif self.keeper_color_card == "green":
+                self.card_deck5_4.pop(-1)
 
-        print(f"1: {self.card_deck1}")
-        print(f"2: {self.card_deck2}")
-        print(f"3: {self.card_deck3}")
-        print(f"4: {self.card_deck4}")
+            print(self.card_deck5_1)
+            print(self.card_deck5_2)
+            print(self.card_deck5_3)
+            print(self.card_deck5_4)
 
         self.step += 1
-        self.keeper_card = self.color_card[-1]
-        self.color_card.pop(-1)
-
         if self.carrent_player[self.step % len(self.carrent_player)] == 1:
+            self.findChild(QPushButton, 'button1').show()
+            self.findChild(QPushButton, 'button3').show()
             self.findChild(QPushButton, 'button1').setText(str(self.card_deck1[-3]))
             self.findChild(QPushButton, 'button2').setText(str(self.card_deck1[-2]))
             self.findChild(QPushButton, 'button3').setText(str(self.card_deck1[-1]))
@@ -511,18 +550,42 @@ class QtWindow(QWidget):
             self.border_image_botton = 'data/4.jpg'
 
         elif self.carrent_player[self.step % len(self.carrent_player)] == 5:
-            if self.keeper_card == "blue":
+            self.keeper_color_card = self.color_card[-1]
+            self.color_card.pop(-1)
+
+            fixed_width = 150
+            if self.keeper_color_card == "blue":
+                self.findChild(QPushButton, 'button2').setFixedWidth(fixed_width)
                 self.findChild(QPushButton, 'button2').setText(str(self.card_deck5_1[-1]))
+                self.findChild(QPushButton, 'button1').hide()
+                self.findChild(QPushButton, 'button3').hide()
                 self.border_image_botton = 'data/5_1.jpg'
-            if self.keeper_card == "red":
+
+                # self.card_deck5_1.pop(-1)
+            elif self.keeper_color_card == "red":
+                self.findChild(QPushButton, 'button2').setFixedWidth(fixed_width)
                 self.findChild(QPushButton, 'button2').setText(str(self.card_deck5_2[-1]))
+                self.findChild(QPushButton, 'button1').hide()
+                self.findChild(QPushButton, 'button3').hide()
                 self.border_image_botton = 'data/5_2.jpg'
-            if self.keeper_card == "yellow":
+
+                # self.card_deck5_2.pop(-1)
+            elif self.keeper_color_card == "yellow":
+                self.findChild(QPushButton, 'button2').setFixedWidth(fixed_width)
                 self.findChild(QPushButton, 'button2').setText(str(self.card_deck5_3[-1]))
+                self.findChild(QPushButton, 'button1').hide()
+                self.findChild(QPushButton, 'button3').hide()
                 self.border_image_botton = 'data/5_3.jpg'
-            if self.keeper_card == "green":
+
+                # self.card_deck5_3.pop(-1)
+            elif self.keeper_color_card == "green":
+                self.findChild(QPushButton, 'button2').setFixedWidth(fixed_width)
                 self.findChild(QPushButton, 'button2').setText(str(self.card_deck5_4[-1]))
+                self.findChild(QPushButton, 'button1').hide()
+                self.findChild(QPushButton, 'button3').hide()
                 self.border_image_botton = 'data/5_4.jpg'
+
+                # self.card_deck5_4.pop(-1)
 
         self.button1.setStyleSheet(
             f"QPushButton{{border-image: url({self.border_image_botton}); color: black;}}")
@@ -535,12 +598,24 @@ class QtWindow(QWidget):
         event.ignore()
 
 
+class QtWindow2(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.initUI()
+
+    def initUI(self):
+        self.setGeometry(1250, 200, 500, 300)
+        self.setWindowTitle("Хранитель. Сокровища Богов Египта")
+
+    def closeEvent(self, event):
+        event.ignore()
+
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    app2 = QApplication(sys.argv)
     qt_window = QtWindow()
+    qt_window2 = QtWindow2()
     start_screen()
     show_level()
     sys.exit(app.exec_())
-
-# сделать проверку на карту хранителя если такой цвет закончился выбирать другой рандомный
-# и сделать в окне хранителя только одну карту и желательно чтобы на нее не требовалось нажимать
