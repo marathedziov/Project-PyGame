@@ -93,23 +93,14 @@ def start_screen():
 
 
 def show_level():
-    d = {"top": (0, -1), "left": (-1, 0), "bottom": (0, 1), "right": (1, 0)}
+    steps_keeper = [(6, 6), (6, 5), (6, 4), (6, 3), (5, 3), (4, 3), (3, 3), (3, 4), (3, 5), (3, 6), (3, 7), (3, 8),
+                    (4, 8), (5, 8), (6, 8), (7, 8), (8, 8), (8, 7), (8, 6), (8, 5), (8, 4), (8, 3), (8, 2),
+                    (8, 1), (7, 1), (6, 1), (5, 1), (4, 1), (3, 1), (2, 1), (1, 1), (1, 2), (1, 3), (1, 4), (1, 5),
+                    (1, 6), (1, 7), (1, 8), (1, 9), (1, 10)]
 
-    steps_keeper = ["right", "top", "top", "top", "left", "left", "left", "bottom", "bottom", "bottom", "bottom",
-                    "bottom",
-                    "right", "right", "right", "right", "right", "top", "top", "top", "top", "top", "top", "top",
-                    "left",
-                    "left", "left", "left", "left", "left", "left", "bottom", "bottom", "bottom", "bottom", "bottom",
-                    "bottom",
-                    "bottom", "bottom", "bottom"]
-
-    steps_player = ["left", "bottom", "bottom", "bottom", "bottom",
-                    "bottom",
-                    "right", "right", "right", "right", "right", "top", "top", "top", "top", "top", "top", "top",
-                    "left",
-                    "left", "left", "left", "left", "left", "left", "bottom", "bottom", "bottom", "bottom", "bottom",
-                    "bottom",
-                    "bottom", "bottom", "bottom"]
+    steps_player = [(3, 3), (3, 4), (3, 5), (3, 6), (3, 7), (3, 8), (4, 8), (5, 8), (6, 8), (7, 8), (8, 8), (8, 7),
+                    (8, 6), (8, 5), (8, 4), (8, 3), (8, 2), (8, 1), (7, 1), (6, 1), (5, 1), (4, 1), (3, 1), (2, 1),
+                    (1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (1, 7), (1, 8), (1, 9), (1, 10)]
 
     step_keeper = 0
     step_player1 = 0
@@ -139,31 +130,35 @@ def show_level():
                     my_list = [1, 1, 2, 2, 3, 3, 4]
                     random.shuffle(my_list)
                     step_multiplier = my_list[0]
-                    for _ in range(step_multiplier):
-                        keeper.move(d[steps_keeper[step_keeper]], tiles_group)
-                        step_keeper = (step_keeper + 1) % len(steps_keeper)
+                    step_keeper += step_multiplier - 1
+                    keeper.move(steps_keeper[step_keeper], tiles_group)
+                    step_keeper += 1
                 elif event.key == pygame.K_1 and player1 is not None:
-                    player1.move(d[steps_player[step_player1]], tiles_group)
-                    step_player1 = (step_player1 + 1) % len(steps_player)
+                    # step_player1 += self.selected_number1 - 1
+                    player1.move(steps_player[step_player1], tiles_group)
+                    step_player1 += 1
                 elif event.key == pygame.K_2 and player2 is not None:
-                    player2.move(d[steps_player[step_player2]], tiles_group)
-                    step_player2 = (step_player2 + 1) % len(steps_player)
+                    # step_player1 += self.selected_number2 - 1
+                    player2.move(steps_player[step_player2], tiles_group)
+                    step_player2 += 1
                 elif event.key == pygame.K_3 and player3 is not None:
-                    player3.move(d[steps_player[step_player3]], tiles_group)
-                    step_player3 = (step_player3 + 1) % len(steps_player)
+                    # step_player1 += self.selected_number3 - 1
+                    player3.move(steps_player[step_player3], tiles_group)
+                    step_player3 += 1
                 elif event.key == pygame.K_4 and player4 is not None:
-                    player4.move(d[steps_player[step_player4]], tiles_group)
-                    step_player4 = (step_player4 + 1) % len(steps_player)
+                    # step_player1 += self.selected_number4 - 1
+                    player4.move(steps_player[step_player4], tiles_group)
+                    step_player4 += 1
 
-        all_sprites.draw(screen)
-        keeper_group.draw(screen)
-        player4_group.draw(screen)
-        player3_group.draw(screen)
-        player2_group.draw(screen)
-        player_group.draw(screen)
+            all_sprites.draw(screen)
+            keeper_group.draw(screen)
+            player4_group.draw(screen)
+            player3_group.draw(screen)
+            player2_group.draw(screen)
+            player_group.draw(screen)
 
-        pygame.display.flip()
-        clock.tick(FPS)
+            pygame.display.flip()
+            clock.tick(FPS)
 
 
 class Tile(pygame.sprite.Sprite):
@@ -198,13 +193,15 @@ class Keeper(pygame.sprite.Sprite):
 
     def move(self, dest, tiles_group):
         dx, dy = dest
-        self.rect.x += dx * Keeper.tile_width
-        self.rect.y += dy * Keeper.tile_height
-        for i in pygame.sprite.spritecollide(self, tiles_group, False):
-            tile_type = getattr(i, 'tile_type', None)
+
+        self.rect.x = dx * Player.tile_width
+        self.rect.y = dy * Player.tile_height
+
+        for tile in pygame.sprite.spritecollide(self, tiles_group, False):
+            tile_type = getattr(tile, 'tile_type', None)
             if tile_type == 'wall':
-                self.rect.x -= dx * Keeper.tile_width
-                self.rect.y -= dy * Keeper.tile_height
+                self.rect.x -= dx * Player.tile_width
+                self.rect.y -= dy * Player.tile_height
 
 
 class Player(pygame.sprite.Sprite):
@@ -223,10 +220,12 @@ class Player(pygame.sprite.Sprite):
 
     def move(self, dest, tiles_group):
         dx, dy = dest
-        self.rect.x += dx * Player.tile_width
-        self.rect.y += dy * Player.tile_height
-        for i in pygame.sprite.spritecollide(self, tiles_group, False):
-            tile_type = getattr(i, 'tile_type', None)
+
+        self.rect.x = dx * Player.tile_width
+        self.rect.y = dy * Player.tile_height
+
+        for tile in pygame.sprite.spritecollide(self, tiles_group, False):
+            tile_type = getattr(tile, 'tile_type', None)
             if tile_type == 'wall':
                 self.rect.x -= dx * Player.tile_width
                 self.rect.y -= dy * Player.tile_height
@@ -234,8 +233,7 @@ class Player(pygame.sprite.Sprite):
                 artifact_value = random.choice(list_artifacts)
                 self.collected_artifacts1.append(artifact_value)
                 list_artifacts.remove(artifact_value)
-                print(
-                    f'1 Игрок: "{artifact_value}" list: {self.collected_artifacts1}')
+                print(f'1 Игрок: "{artifact_value}" list: {self.collected_artifacts1}')
 
 
 class Player2(pygame.sprite.Sprite):
@@ -254,10 +252,12 @@ class Player2(pygame.sprite.Sprite):
 
     def move(self, dest, tiles_group):
         dx, dy = dest
-        self.rect.x += dx * Player2.tile_width
-        self.rect.y += dy * Player2.tile_height
-        for i in pygame.sprite.spritecollide(self, tiles_group, False):
-            tile_type = getattr(i, 'tile_type', None)
+
+        self.rect.x = dx * Player2.tile_width
+        self.rect.y = dy * Player2.tile_height
+
+        for tile in pygame.sprite.spritecollide(self, tiles_group, False):
+            tile_type = getattr(tile, 'tile_type', None)
             if tile_type == 'wall':
                 self.rect.x -= dx * Player2.tile_width
                 self.rect.y -= dy * Player2.tile_height
@@ -265,8 +265,7 @@ class Player2(pygame.sprite.Sprite):
                 artifact_value = random.choice(list_artifacts)
                 self.collected_artifacts2.append(artifact_value)
                 list_artifacts.remove(artifact_value)
-                print(
-                    f'2 Игрок: "{artifact_value}" list: {self.collected_artifacts2}')
+                print(f'2 Игрок: "{artifact_value}" list: {self.collected_artifacts2}')
 
 
 class Player3(pygame.sprite.Sprite):
@@ -285,10 +284,12 @@ class Player3(pygame.sprite.Sprite):
 
     def move(self, dest, tiles_group):
         dx, dy = dest
-        self.rect.x += dx * Player3.tile_width
-        self.rect.y += dy * Player3.tile_height
-        for i in pygame.sprite.spritecollide(self, tiles_group, False):
-            tile_type = getattr(i, 'tile_type', None)
+
+        self.rect.x = dx * Player3.tile_width
+        self.rect.y = dy * Player3.tile_height
+
+        for tile in pygame.sprite.spritecollide(self, tiles_group, False):
+            tile_type = getattr(tile, 'tile_type', None)
             if tile_type == 'wall':
                 self.rect.x -= dx * Player3.tile_width
                 self.rect.y -= dy * Player3.tile_height
@@ -296,8 +297,7 @@ class Player3(pygame.sprite.Sprite):
                 artifact_value = random.choice(list_artifacts)
                 self.collected_artifacts3.append(artifact_value)
                 list_artifacts.remove(artifact_value)
-                print(
-                    f'3 Игрок: "{artifact_value}" list: {self.collected_artifacts3}')
+                print(f'3 Игрок: "{artifact_value}" list: {self.collected_artifacts3}')
 
 
 class Player4(pygame.sprite.Sprite):
@@ -316,24 +316,30 @@ class Player4(pygame.sprite.Sprite):
 
     def move(self, dest, tiles_group):
         dx, dy = dest
-        self.rect.x += dx * Player3.tile_width
-        self.rect.y += dy * Player3.tile_height
-        for i in pygame.sprite.spritecollide(self, tiles_group, False):
-            tile_type = getattr(i, 'tile_type', None)
+
+        self.rect.x = dx * Player4.tile_width
+        self.rect.y = dy * Player4.tile_height
+
+        for tile in pygame.sprite.spritecollide(self, tiles_group, False):
+            tile_type = getattr(tile, 'tile_type', None)
             if tile_type == 'wall':
-                self.rect.x -= dx * Player3.tile_width
-                self.rect.y -= dy * Player3.tile_height
+                self.rect.x -= dx * Player4.tile_width
+                self.rect.y -= dy * Player4.tile_height
             elif tile_type == 'bag':
                 artifact_value = random.choice(list_artifacts)
                 self.collected_artifacts4.append(artifact_value)
                 list_artifacts.remove(artifact_value)
-                print(
-                    f'4 Игрок: "{artifact_value}" list: {self.collected_artifacts4}')
+                print(f'4 Игрок: "{artifact_value}" list: {self.collected_artifacts4}')
 
 
 def generate_level(level, keeper_group, tiles_group, all_sprites, player_group, player2_group, player3_group,
                    player4_group):
-    new_keeper, keeper_x, keeper_y, new_player1, player_x, player_y, new_player2, new_player3, new_player4 = None, None, None, None, None, None, None, None, None
+    new_keeper, keeper_x, keeper_y, new_player1, player_x, player_y, new_player2, new_player3, new_player4 = (
+        None, None,
+        None, None,
+        None, None,
+        None, None,
+        None)
     for y in range(len(level)):
         for x in range(len(level[y])):
             if level[y][x] == '.':
