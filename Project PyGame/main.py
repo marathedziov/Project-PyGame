@@ -1,11 +1,14 @@
 import random
 import sys
 import os
+import time
+
 import pygame
+from PyQt5.QtCore import QUrl
 from PyQt5.QtGui import QIcon, QFont
+from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QHBoxLayout
 
-FPS = 50
 os.environ['SDL_VIDEO_WINDOW_POS'] = '710, 120'
 
 pygame.init()
@@ -18,7 +21,8 @@ list_artifacts = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                   4, 4, 4, 4, 4, 10, 10, 10, 10]
 
 random.shuffle(list_artifacts)
-random.shuffle(list_artifacts)
+random.shuffle(list_artifacts)  # так надёжнее)
+flag_move = False
 
 
 def terminate():
@@ -80,6 +84,7 @@ def start_screen():
                 if button_rect.collidepoint(pygame.mouse.get_pos()):
                     running = False
                     qt_window.show()
+                    qt_window.media_player.play()
                     qt_window2.show()
                     break
 
@@ -93,12 +98,14 @@ def start_screen():
 
 
 def show_level():
-    steps_keeper = [(6, 6), (6, 5), (6, 4), (6, 3), (5, 3), (4, 3), (3, 3), (3, 4), (3, 5), (3, 6), (3, 7), (3, 8),
+    steps_keeper = [(5, 6), (6, 6), (6, 5), (6, 4), (6, 3), (5, 3), (4, 3), (3, 3), (3, 4), (3, 5), (3, 6), (3, 7),
+                    (3, 8),
                     (4, 8), (5, 8), (6, 8), (7, 8), (8, 8), (8, 7), (8, 6), (8, 5), (8, 4), (8, 3), (8, 2),
                     (8, 1), (7, 1), (6, 1), (5, 1), (4, 1), (3, 1), (2, 1), (1, 1), (1, 2), (1, 3), (1, 4), (1, 5),
                     (1, 6), (1, 7), (1, 8), (1, 9), (1, 10)]
 
-    steps_player = [(3, 3), (3, 4), (3, 5), (3, 6), (3, 7), (3, 8), (4, 8), (5, 8), (6, 8), (7, 8), (8, 8), (8, 7),
+    steps_player = [(4, 3), (3, 3), (3, 4), (3, 5), (3, 6), (3, 7), (3, 8), (4, 8), (5, 8), (6, 8), (7, 8), (8, 8),
+                    (8, 7),
                     (8, 6), (8, 5), (8, 4), (8, 3), (8, 2), (8, 1), (7, 1), (6, 1), (5, 1), (4, 1), (3, 1), (2, 1),
                     (1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (1, 7), (1, 8), (1, 9), (1, 10)]
 
@@ -108,6 +115,8 @@ def show_level():
     step_player3 = 0
     step_player4 = 0
 
+    count_win_player = 0
+
     all_sprites = pygame.sprite.Group()
     tiles_group = pygame.sprite.Group()
     keeper_group = pygame.sprite.Group()
@@ -116,40 +125,87 @@ def show_level():
     player3_group = pygame.sprite.Group()
     player4_group = pygame.sprite.Group()
 
-    level = load_level('level1.txt')
+    level = load_level('level2.txt')
     keeper, keeper_x, keeper_y, player1, player_x, player_y, player2, player3, player4 = generate_level(
         level, keeper_group, tiles_group, all_sprites, player_group, player2_group, player3_group, player4_group)
 
-    clock = pygame.time.Clock()
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE and keeper is not None:
-                    my_list = [1, 1, 2, 2, 3, 3, 4]
-                    random.shuffle(my_list)
-                    step_multiplier = my_list[0]
-                    step_keeper += step_multiplier - 1
-                    keeper.move(steps_keeper[step_keeper], tiles_group)
-                    step_keeper += 1
-                elif event.key == pygame.K_1 and player1 is not None:
-                    # step_player1 += self.selected_number1 - 1
-                    player1.move(steps_player[step_player1], tiles_group)
-                    step_player1 += 1
-                elif event.key == pygame.K_2 and player2 is not None:
-                    # step_player1 += self.selected_number2 - 1
-                    player2.move(steps_player[step_player2], tiles_group)
-                    step_player2 += 1
-                elif event.key == pygame.K_3 and player3 is not None:
-                    # step_player1 += self.selected_number3 - 1
-                    player3.move(steps_player[step_player3], tiles_group)
-                    step_player3 += 1
-                elif event.key == pygame.K_4 and player4 is not None:
-                    # step_player1 += self.selected_number4 - 1
-                    player4.move(steps_player[step_player4], tiles_group)
-                    step_player4 += 1
+            global flag_move
+            if flag_move:
+                if player1 is not None:
+                    step_player1 += qt_window.selected_number1
+                    if step_player1 >= 33:
+                        count_win_player += 1
+                        player1.move(steps_player[34], tiles_group)
+                        player1 = None
+                    else:
+                        player1.move(steps_player[step_player1], tiles_group)
+                if player2 is not None:
+                    step_player2 += qt_window.selected_number2
+                    if step_player2 >= 33:
+                        count_win_player += 1
+                        player2.move(steps_player[34], tiles_group)
+                        player2 = None
+                    else:
+                        player2.move(steps_player[step_player2], tiles_group)
+                if player3 is not None:
+                    step_player3 += qt_window.selected_number3
+                    if step_player3 >= 33:
+                        count_win_player += 1
+                        player3.move(steps_player[34], tiles_group)
+                        player3 = None
+                    else:
+                        player3.move(steps_player[step_player3], tiles_group)
+                if player4 is not None:
+                    step_player4 += qt_window.selected_number4
+                    if step_player4 >= 33:
+                        count_win_player += 1
+                        player4.move(steps_player[34], tiles_group)
+                        player4 = None
+                    else:
+                        player4.move(steps_player[step_player4], tiles_group)
+                if keeper is not None:
+                    step_keeper += qt_window.selected_number5
+                    if step_keeper >= 39:
+                        if keeper is not None:
+                            print("Стоп Игра! Хранитель выиграл!")
+                            keeper.move(steps_keeper[40], tiles_group, player_group, player2_group,
+                                        player3_group, player4_group)
+                        keeper = None
+                    else:
+                        if keeper is not None:
+                            keeper.move(steps_keeper[step_keeper], tiles_group, player_group, player2_group,
+                                        player3_group, player4_group)
+                all_sprites.draw(screen)
+                keeper_group.draw(screen)
+                player4_group.draw(screen)
+                player3_group.draw(screen)
+                player2_group.draw(screen)
+                player_group.draw(screen)
 
+                pygame.display.flip()
+                time.sleep(0.7)
+
+                list_random_step_keeper = [1, 2, 3]
+                random.shuffle(list_random_step_keeper)
+                step_multiplier = list_random_step_keeper[0]
+                step_keeper += step_multiplier
+                if step_keeper >= 39:
+                    if keeper is not None:
+                        keeper.move(steps_keeper[40], tiles_group, player_group, player2_group,
+                                    player3_group, player4_group)
+                        print("Стоп Игра! Хранитель выиграл!")
+
+                else:
+                    if keeper is not None:
+                        keeper.move(steps_keeper[step_keeper], tiles_group, player_group, player2_group, player3_group,
+                                    player4_group)
+                step_keeper += 1
+            if count_win_player == 4:
+                print("Стоп Игра! Игроки выиграли!")
             all_sprites.draw(screen)
             keeper_group.draw(screen)
             player4_group.draw(screen)
@@ -158,7 +214,7 @@ def show_level():
             player_group.draw(screen)
 
             pygame.display.flip()
-            clock.tick(FPS)
+            flag_move = False
 
 
 class Tile(pygame.sprite.Sprite):
@@ -182,8 +238,12 @@ class Keeper(pygame.sprite.Sprite):
     keeper_image = load_image('keeper.png')
     tile_width = tile_height = 50
 
-    def __init__(self, pos_x, pos_y, keeper_group, all_sprites):
+    def __init__(self, pos_x, pos_y, keeper_group, all_sprites, player1, player2, player3, player4):
         super().__init__(keeper_group, all_sprites)
+        self.player1 = player1
+        self.player2 = player2
+        self.player3 = player3
+        self.player4 = player4
         self.image = Keeper.keeper_image
         self.rect = self.image.get_rect().move(
             Keeper.tile_width * pos_x, Keeper.tile_height * pos_y)
@@ -191,7 +251,7 @@ class Keeper(pygame.sprite.Sprite):
         self.x = pos_x
         self.y = pos_y
 
-    def move(self, dest, tiles_group):
+    def move(self, dest, tiles_group, player_group, player2_group, player3_group, player4_group):
         dx, dy = dest
 
         self.rect.x = dx * Player.tile_width
@@ -202,6 +262,25 @@ class Keeper(pygame.sprite.Sprite):
             if tile_type == 'wall':
                 self.rect.x -= dx * Player.tile_width
                 self.rect.y -= dy * Player.tile_height
+        for player in pygame.sprite.spritecollide(self, player_group, False):
+            print("Keeper encountered Player 1!")
+            list_artifacts.extend(self.player1.collected_artifacts1)
+            self.player1.collected_artifacts1 = []
+
+        for player2 in pygame.sprite.spritecollide(self, player2_group, False):
+            print("Keeper encountered Player 2!")
+            list_artifacts.extend(self.player2.collected_artifacts2)
+            self.player2.collected_artifacts2 = []
+
+        for player3 in pygame.sprite.spritecollide(self, player3_group, False):
+            print("Keeper encountered Player 3!")
+            list_artifacts.extend(self.player3.collected_artifacts3)
+            self.player3.collected_artifacts3 = []
+
+        for player4 in pygame.sprite.spritecollide(self, player4_group, False):
+            print("Keeper encountered Player 4!")
+            list_artifacts.extend(self.player4.collected_artifacts4)
+            self.player4.collected_artifacts4 = []
 
 
 class Player(pygame.sprite.Sprite):
@@ -233,7 +312,7 @@ class Player(pygame.sprite.Sprite):
                 artifact_value = random.choice(list_artifacts)
                 self.collected_artifacts1.append(artifact_value)
                 list_artifacts.remove(artifact_value)
-                print(f'1 Игрок: "{artifact_value}" list: {self.collected_artifacts1}')
+                # print(f'1 Игрок: "{artifact_value}" list: {self.collected_artifacts1}')
 
 
 class Player2(pygame.sprite.Sprite):
@@ -265,7 +344,7 @@ class Player2(pygame.sprite.Sprite):
                 artifact_value = random.choice(list_artifacts)
                 self.collected_artifacts2.append(artifact_value)
                 list_artifacts.remove(artifact_value)
-                print(f'2 Игрок: "{artifact_value}" list: {self.collected_artifacts2}')
+                # print(f'2 Игрок: "{artifact_value}" list: {self.collected_artifacts2}')
 
 
 class Player3(pygame.sprite.Sprite):
@@ -297,7 +376,7 @@ class Player3(pygame.sprite.Sprite):
                 artifact_value = random.choice(list_artifacts)
                 self.collected_artifacts3.append(artifact_value)
                 list_artifacts.remove(artifact_value)
-                print(f'3 Игрок: "{artifact_value}" list: {self.collected_artifacts3}')
+                # print(f'3 Игрок: "{artifact_value}" list: {self.collected_artifacts3}')
 
 
 class Player4(pygame.sprite.Sprite):
@@ -329,7 +408,7 @@ class Player4(pygame.sprite.Sprite):
                 artifact_value = random.choice(list_artifacts)
                 self.collected_artifacts4.append(artifact_value)
                 list_artifacts.remove(artifact_value)
-                print(f'4 Игрок: "{artifact_value}" list: {self.collected_artifacts4}')
+                # print(f'4 Игрок: "{artifact_value}" list: {self.collected_artifacts4}')
 
 
 def generate_level(level, keeper_group, tiles_group, all_sprites, player_group, player2_group, player3_group,
@@ -352,7 +431,8 @@ def generate_level(level, keeper_group, tiles_group, all_sprites, player_group, 
                 Tile('exit', x, y, tiles_group, all_sprites)
             elif level[y][x] == '0':
                 Tile('empty', x, y, tiles_group, all_sprites)
-                new_keeper = Keeper(x, y, keeper_group, all_sprites)
+                new_keeper = Keeper(x, y, keeper_group=keeper_group, all_sprites=all_sprites,
+                                    player1=new_player1, player2=new_player2, player3=new_player3, player4=new_player4)
                 keeper_x, keeper_y = x, y
             elif level[y][x] == '1':
                 Tile('empty', x, y, tiles_group, all_sprites)
@@ -376,16 +456,22 @@ def load_level(filename):
 class QtWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.card_deck1 = [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5]
-        self.card_deck2 = [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5]
-        self.card_deck3 = [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5]
-        self.card_deck4 = [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5]
 
-        self.card_deck5_1 = [1, 2, 3, 4]
-        self.card_deck5_2 = [1, 2, 3, 4]
-        self.card_deck5_3 = [1, 2, 3, 4]
-        self.card_deck5_4 = [1, 2, 3, 4]
-        self.color_card = ["blue", "red", "yellow", "green"] * 4
+        self.media_player = QMediaPlayer()
+        self.media_player.setMedia(QMediaContent(QUrl.fromLocalFile("data/music.mp3")))
+        self.media_player.setVolume(30)
+        self.media_player.positionChanged.connect(self.handle_position_changed)
+
+        self.card_deck1 = [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5] * 5
+        self.card_deck2 = [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5] * 5
+        self.card_deck3 = [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5] * 5
+        self.card_deck4 = [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5] * 5
+
+        self.card_deck5_1 = [1, 2, 3, 4] * 5
+        self.card_deck5_2 = [1, 2, 3, 4] * 5
+        self.card_deck5_3 = [1, 2, 3, 4] * 5
+        self.card_deck5_4 = [1, 2, 3, 4] * 5
+        self.color_card = ["blue", "red", "yellow", "green"] * 20
         random.shuffle(self.card_deck1)
         random.shuffle(self.card_deck2)
         random.shuffle(self.card_deck3)
@@ -410,6 +496,10 @@ class QtWindow(QWidget):
         self.keeper_color_card = None
 
         self.initUI()
+
+    def handle_position_changed(self, position):
+        if position > self.media_player.duration() - 1000:
+            self.media_player.setPosition(0)
 
     def initUI(self):
         self.setGeometry(710, 690, 500, 300)
@@ -530,6 +620,7 @@ class QtWindow(QWidget):
             if self.keeper_color_card == "blue":
                 if self.selected_number1 < self.selected_number5:
                     self.selected_number5 = self.selected_number5 + self.selected_number1
+                    self.selected_number1 = 0
                 elif self.selected_number1 == self.selected_number5:
                     self.selected_number5 = 0
                     self.selected_number1 = 0
@@ -540,16 +631,18 @@ class QtWindow(QWidget):
             elif self.keeper_color_card == "red":
                 if self.selected_number2 < self.selected_number5:
                     self.selected_number5 = self.selected_number5 + self.selected_number2
+                    self.selected_number2 = 0
                 elif self.selected_number2 == self.selected_number5:
                     self.selected_number5 = 0
                     self.selected_number2 = 0
                 elif self.selected_number2 > self.selected_number5:
-                    self.selected_number2 = self.selected_number2 - self.selected_number2
+                    self.selected_number2 = self.selected_number2 - self.selected_number5
                     self.selected_number5 = 0
 
             elif self.keeper_color_card == "yellow":
                 if self.selected_number3 < self.selected_number5:
                     self.selected_number5 = self.selected_number5 + self.selected_number3
+                    self.selected_number3 = 0
                 elif self.selected_number3 == self.selected_number5:
                     self.selected_number5 = 0
                     self.selected_number3 = 0
@@ -560,13 +653,15 @@ class QtWindow(QWidget):
             elif self.keeper_color_card == "green":
                 if self.selected_number4 < self.selected_number5:
                     self.selected_number5 = self.selected_number5 + self.selected_number4
+                    self.selected_number4 = 0
                 elif self.selected_number4 == self.selected_number5:
                     self.selected_number5 = 0
                     self.selected_number4 = 0
                 elif self.selected_number4 > self.selected_number5:
                     self.selected_number4 = self.selected_number4 - self.selected_number5
                     self.selected_number5 = 0
-
+            global flag_move
+            flag_move = True
         self.step += 1
 
         if self.carrent_player[self.step % len(self.carrent_player)] == 1:
@@ -686,11 +781,6 @@ class QtWindow2(QWidget):
             f"QPushButton{{border-image: url({'data/5_3.jpg'}); color: black;}}")
         self.button5_4.setStyleSheet(
             f"QPushButton{{border-image: url({'data/5_4.jpg'}); color: black;}}")
-
-    # self.button5_1.hide()
-    # self.button5_2.hide()
-    # self.button5_3.hide()
-    # self.button5_4.hide()
 
     def closeEvent(self, event):
         event.ignore()
