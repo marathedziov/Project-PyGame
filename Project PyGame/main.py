@@ -84,8 +84,8 @@ def start_screen():
                 if button_rect.collidepoint(pygame.mouse.get_pos()):
                     running = False
                     qt_window.show()
-                    qt_window.media_player.play()
                     qt_window2.show()
+                    qt_window.media_player.play()
                     break
 
         if button_rect.collidepoint(pygame.mouse.get_pos()):
@@ -115,7 +115,9 @@ def show_level():
     step_player3 = 0
     step_player4 = 0
 
-    count_win_player = 0
+    count_win_player = list()
+    keeper_won = False
+    stop = False
 
     all_sprites = pygame.sprite.Group()
     tiles_group = pygame.sprite.Group()
@@ -125,7 +127,7 @@ def show_level():
     player3_group = pygame.sprite.Group()
     player4_group = pygame.sprite.Group()
 
-    level = load_level('level2.txt')
+    level = load_level('level1.txt')
     keeper, keeper_x, keeper_y, player1, player_x, player_y, player2, player3, player4 = generate_level(
         level, keeper_group, tiles_group, all_sprites, player_group, player2_group, player3_group, player4_group)
 
@@ -133,79 +135,53 @@ def show_level():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-            global flag_move
-            if flag_move:
-                if player1 is not None:
-                    step_player1 += qt_window.selected_number1
-                    if step_player1 >= 33:
-                        count_win_player += 1
-                        player1.move(steps_player[34], tiles_group)
-                        player1 = None
-                    else:
-                        player1.move(steps_player[step_player1], tiles_group)
-                if player2 is not None:
-                    step_player2 += qt_window.selected_number2
-                    if step_player2 >= 33:
-                        count_win_player += 1
-                        player2.move(steps_player[34], tiles_group)
-                        player2 = None
-                    else:
-                        player2.move(steps_player[step_player2], tiles_group)
-                if player3 is not None:
-                    step_player3 += qt_window.selected_number3
-                    if step_player3 >= 33:
-                        count_win_player += 1
-                        player3.move(steps_player[34], tiles_group)
-                        player3 = None
-                    else:
-                        player3.move(steps_player[step_player3], tiles_group)
-                if player4 is not None:
-                    step_player4 += qt_window.selected_number4
-                    if step_player4 >= 33:
-                        count_win_player += 1
-                        player4.move(steps_player[34], tiles_group)
-                        player4 = None
-                    else:
-                        player4.move(steps_player[step_player4], tiles_group)
-                if keeper is not None:
-                    step_keeper += qt_window.selected_number5
-                    if step_keeper >= 39:
-                        if keeper is not None:
-                            print("Стоп Игра! Хранитель выиграл!")
-                            keeper.move(steps_keeper[40], tiles_group, player_group, player2_group,
-                                        player3_group, player4_group)
-                        keeper = None
-                    else:
-                        if keeper is not None:
-                            keeper.move(steps_keeper[step_keeper], tiles_group, player_group, player2_group,
-                                        player3_group, player4_group)
-                all_sprites.draw(screen)
-                keeper_group.draw(screen)
-                player4_group.draw(screen)
-                player3_group.draw(screen)
-                player2_group.draw(screen)
-                player_group.draw(screen)
-
-                pygame.display.flip()
-                time.sleep(0.7)
-
-                list_random_step_keeper = [1, 2, 3]
-                random.shuffle(list_random_step_keeper)
-                step_multiplier = list_random_step_keeper[0]
-                step_keeper += step_multiplier
+        global flag_move
+        if flag_move:
+            if player1 is not None:
+                step_player1 += qt_window.selected_number1
+                if step_player1 >= 33:
+                    count_win_player.append("blue")
+                    player1.move(steps_player[34], tiles_group)
+                    player1 = None
+                else:
+                    player1.move(steps_player[step_player1], tiles_group)
+            if player2 is not None:
+                step_player2 += qt_window.selected_number2
+                if step_player2 >= 33:
+                    count_win_player.append("red")
+                    player2.move(steps_player[34], tiles_group)
+                    player2 = None
+                else:
+                    player2.move(steps_player[step_player2], tiles_group)
+            if player3 is not None:
+                step_player3 += qt_window.selected_number3
+                if step_player3 >= 33:
+                    count_win_player.append("yellow")
+                    player3.move(steps_player[34], tiles_group)
+                    player3 = None
+                else:
+                    player3.move(steps_player[step_player3], tiles_group)
+            if player4 is not None:
+                step_player4 += qt_window.selected_number4
+                if step_player4 >= 33:
+                    count_win_player.append("green")
+                    player4.move(steps_player[34], tiles_group)
+                    player4 = None
+                else:
+                    player4.move(steps_player[step_player4], tiles_group)
+            if keeper is not None:
+                step_keeper += qt_window.selected_number5
                 if step_keeper >= 39:
                     if keeper is not None:
                         keeper.move(steps_keeper[40], tiles_group, player_group, player2_group,
                                     player3_group, player4_group)
-                        print("Стоп Игра! Хранитель выиграл!")
-
+                        stop = True
+                        keeper_won = True
+                    keeper = None
                 else:
                     if keeper is not None:
-                        keeper.move(steps_keeper[step_keeper], tiles_group, player_group, player2_group, player3_group,
-                                    player4_group)
-                step_keeper += 1
-            if count_win_player == 4:
-                print("Стоп Игра! Игроки выиграли!")
+                        keeper.move(steps_keeper[step_keeper], tiles_group, player_group, player2_group,
+                                    player3_group, player4_group)
             all_sprites.draw(screen)
             keeper_group.draw(screen)
             player4_group.draw(screen)
@@ -214,7 +190,118 @@ def show_level():
             player_group.draw(screen)
 
             pygame.display.flip()
-            flag_move = False
+            time.sleep(0.7)
+
+            list_random_step_keeper = [1, 2, 3]
+            random.shuffle(list_random_step_keeper)
+            step_multiplier = list_random_step_keeper[0]
+            step_keeper += step_multiplier
+            if step_keeper >= 39:
+                if keeper is not None:
+                    keeper.move(steps_keeper[40], tiles_group, player_group, player2_group,
+                                player3_group, player4_group)
+                    stop = True
+                    keeper_won = True
+                keeper = None
+            else:
+                if keeper is not None:
+                    keeper.move(steps_keeper[step_keeper], tiles_group, player_group, player2_group, player3_group,
+                                player4_group)
+            step_keeper += 1
+        if len(count_win_player) == 4:
+            stop = True
+
+        all_sprites.draw(screen)
+        keeper_group.draw(screen)
+        player4_group.draw(screen)
+        player3_group.draw(screen)
+        player2_group.draw(screen)
+        player_group.draw(screen)
+
+        pygame.display.flip()
+        flag_move = False
+
+        if stop:
+            qt_window.close()
+            qt_window2.close()
+            qt_window.media_player.stop()
+            time.sleep(0.6)
+            if len(count_win_player) == 0:
+                start_window_keeper_won()  # окно для хранителя
+            elif len(count_win_player) != 0 and keeper_won:
+                start_window_player_won(count_win_player)  # окно для игроков
+            elif len(count_win_player) != 0 and not keeper_won:
+                start_window_player_won(count_win_player)  # окно для игроков
+
+
+def start_window_keeper_won():
+    pygame.init()
+    size = width, height = 500, 500
+    screen = pygame.display.set_mode(size)
+    pygame.display.set_caption("Keeper Won")
+    background_image = pygame.image.load("data/fon3.png")
+
+    pygame.mixer.init()
+    pygame.mixer.music.load("data/music_keeper.mp3")
+    pygame.mixer.music.play(-1)
+
+    font = pygame.font.Font(None, 68)
+    text = font.render("Хранитель победил!", True, (200, 150, 100))
+    text_rect = text.get_rect(center=(width // 2, height // 13))
+
+    images = [pygame.image.load(os.path.join("data/dancing mummy", f"{i}.png")) for i in
+              range(1, 13)]
+    current_frame = 0
+    last_frame_time = pygame.time.get_ticks()
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+        current_time = pygame.time.get_ticks()
+        if current_time - last_frame_time > 85:
+            current_frame = (current_frame + 1) % len(images)
+            last_frame_time = current_time
+
+        scaled_image = pygame.transform.scale(images[current_frame], (int(500 / 1.4), int(450 / 1.4)))
+        image_rect = scaled_image.get_rect(center=(width // 2, height - scaled_image.get_height() // 2))
+
+        screen.blit(background_image, (0, 0))
+        screen.blit(scaled_image, image_rect.topleft)
+        screen.blit(text, text_rect)
+        pygame.display.flip()
+
+
+def start_window_player_won(count_win_player):
+    pygame.init()
+    size = width, height = 500, 500
+    screen = pygame.display.set_mode(size)
+    pygame.display.set_caption("Player Won")
+
+    font = pygame.font.Font(None, 36)
+    text = font.render(f"Player Won {count_win_player}", True, (255, 255, 255))
+    text_rect = text.get_rect(center=(width // 2, height // 2))
+
+    lst = count_win_player
+    if len(lst) == 1:
+        pass
+    elif len(lst) == 2:
+        pass
+    elif len(lst) == 3:
+        pass
+    elif len(lst) == 4:
+        pass
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+        screen.fill((0, 0, 0))
+        screen.blit(text, text_rect)
+        pygame.display.flip()
 
 
 class Tile(pygame.sprite.Sprite):
@@ -462,10 +549,10 @@ class QtWindow(QWidget):
         self.media_player.setVolume(30)
         self.media_player.positionChanged.connect(self.handle_position_changed)
 
-        self.card_deck1 = [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5] * 5
-        self.card_deck2 = [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5] * 5
-        self.card_deck3 = [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5] * 5
-        self.card_deck4 = [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5] * 5
+        self.card_deck1 = [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5] * 3
+        self.card_deck2 = [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5] * 3
+        self.card_deck3 = [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5] * 3
+        self.card_deck4 = [1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5] * 3
 
         self.card_deck5_1 = [1, 2, 3, 4] * 5
         self.card_deck5_2 = [1, 2, 3, 4] * 5
@@ -730,8 +817,8 @@ class QtWindow(QWidget):
         self.button3.setStyleSheet(
             f"QPushButton{{border-image: url({self.border_image_botton}); color: black;}}")
 
-    def closeEvent(self, event):
-        event.ignore()
+    # def closeEvent(self, event):
+    #     event.ignore()
 
 
 class QtWindow2(QWidget):
@@ -782,8 +869,8 @@ class QtWindow2(QWidget):
         self.button5_4.setStyleSheet(
             f"QPushButton{{border-image: url({'data/5_4.jpg'}); color: black;}}")
 
-    def closeEvent(self, event):
-        event.ignore()
+    # def closeEvent(self, event):
+    #     event.ignore()
 
 
 if __name__ == "__main__":
