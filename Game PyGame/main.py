@@ -332,7 +332,7 @@ def start_window_player_won(count_win_player):
         scaled_image = pygame.transform.scale(images[current_frame], (int(500), int(450)))
         image_rect = scaled_image.get_rect(center=(width // 2, height - scaled_image.get_height() // 2))
 
-        scaled_image2 = pygame.transform.scale(new_image, (150, 150))
+        scaled_image2 = pygame.transform.scale(new_image, (400, 100))
         image_rect2 = scaled_image2.get_rect(center=(width // 2, height // 1.8))
 
         screen.blit(background_image, (0, 0))
